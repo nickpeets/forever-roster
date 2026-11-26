@@ -165,19 +165,20 @@ footer{background:var(--ink);color:#D3DAE5;font-size:14px;padding:28px 0;margin-
 <h2 id="proofTitle"></h2>
 <p style="margin:0;color:var(--muted);max-width:560px">This is how it will print and how it'll look in the case. Nothing prints until you approve it.</p>
 <div class="roster" id="proof"></div>
-<div class="row" style="justify-content:center"><button class="btn" type="button" data-go="2">Make changes</button><button class="btn primary" type="button" data-go="4">Approve proof</button></div>
+<p class="small" id="dlNote" role="status">Print files: 2.5 × 3.5 in at 300 dpi, with 1/8 in bleed (825 × 1125 px), front and back as PNG.</p>
+<div class="row" style="justify-content:center"><button class="btn" type="button" id="dlFiles">Download print files</button><button class="btn" type="button" data-go="2">Make changes</button><button class="btn primary" type="button" data-go="4">Approve proof</button></div>
 </div>
 
 <div id="v4" class="wrap" style="padding-block:40px 64px" hidden>
 <div class="eyebrow">Step 4 of 4</div>
 <h2 style="font-size:38px;margin:6px 0 22px">Pick your pack</h2>
 <div class="packs">
-<div class="pack"><b style="font-size:18px">Keepsake · 1 card</b><p>One card sealed in a clear case, in a gift box.</p><div class="price">Price TBD</div><button class="btn" type="button">Add to cart</button></div>
-<div class="pack pop"><div class="eyebrow" style="color:var(--blue)">For trading</div><b style="font-size:18px">Trade pack · 10 cards</b><p>Ten loose cards, no case. Made for handing out, trading and carrying around.</p><div class="price">Price TBD</div><button class="btn primary" type="button">Add to cart</button></div>
-<div class="pack"><div class="eyebrow">Best value</div><b style="font-size:18px">Trade pack · 20 cards</b><p>Twenty loose cards, no case. Enough for the whole friend group.</p><div class="price">Price TBD</div><button class="btn" type="button">Add to cart</button></div>
-<div class="pack dark" id="team"><b style="font-size:18px">Team set · with friends</b><p>Send one link. Everyone adds their own pet, and each person gets the full set in the mail.</p><div class="link">foreverroster.com/team/your-group</div><div class="price">Price TBD / person</div><button class="btn gold" type="button" id="copy">Copy invite link</button></div>
+<div class="pack"><b style="font-size:18px">Keepsake · 1 card</b><p>One card sealed in a clear case, in a gift box.</p><div class="price">$29.99</div><button class="btn" type="button" data-buy="keepsake">Buy</button></div>
+<div class="pack pop"><div class="eyebrow" style="color:var(--blue)">For trading</div><b style="font-size:18px">Trade pack · 10 cards</b><p>Ten loose cards, no case. Made for handing out, trading and carrying around.</p><div class="price">$24.99</div><button class="btn primary" type="button" data-buy="trade10">Buy</button></div>
+<div class="pack"><div class="eyebrow">Best value</div><b style="font-size:18px">Trade pack · 20 cards</b><p>Twenty loose cards, no case. Enough for the whole friend group.</p><div class="price">$39.99</div><button class="btn" type="button" data-buy="trade20">Buy</button></div>
+<div class="pack dark" id="team"><b style="font-size:18px">Team set · with friends</b><p>Send one link. Everyone adds their own pet, and each person gets the full set in the mail.</p><div class="link">foreverroster.com/team/your-group</div><div class="price">$24.99 / person</div><button class="btn gold" type="button" id="copy">Copy invite link</button></div>
 </div>
-<p class="small" style="margin-top:18px">Concept mockup: prices, timing and checkout aren't set up yet.</p>
+<p class="small" style="margin-top:18px">Plus $4.99 flat shipping. Printed and shipped in about 7 to 12 days.</p><p class="small" id="buyNote" role="status"></p>
 <button class="btn" type="button" data-go="3">Back to proof</button>
 </div>
 
@@ -294,6 +295,89 @@ $('liveFlip').addEventListener('click', () => flip($('live'), () => { S.liveSide
 $('copy').addEventListener('click', async () => {
   try { await navigator.clipboard.writeText('foreverroster.com/team/your-group'); $('copy').textContent = 'Link copied'; }
   catch { $('copy').textContent = 'Copy not available here'; }
+});
+
+const CONFIG = {
+  // Paste Stripe Payment Link URLs here when the account is ready.
+  checkout: { keepsake: '', trade10: '', trade20: '', team: '' }
+};
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-buy]'); if (!b) return;
+  const url = CONFIG.checkout[b.dataset.buy];
+  if (url) location.href = url;
+  else $('buyNote').textContent = 'Checkout opens at launch. For now, download your print files from the proof step.';
+});
+const loadImg = (src) => new Promise((res) => { if (!src) return res(null); const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
+function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+function cover(ctx, img, x, y, w, h) {
+  const s = Math.max(w / img.width, h / img.height), sw = w / s, sh = h / s;
+  ctx.drawImage(img, (img.width - sw) / 2, (img.height - sh) / 2, sw, sh, x, y, w, h);
+}
+function wrap(ctx, text, maxW) {
+  const words = String(text).split(/\s+/), lines = []; let line = '';
+  for (const w of words) { const t = line ? line + ' ' + w : w; if (ctx.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t; }
+  if (line) lines.push(line); return lines.slice(0, 4);
+}
+async function renderSide(c, side) {
+  await Promise.all([document.fonts.load("21px 'Alfa Slab One'"), document.fonts.load('700 11px Inter'), document.fonts.load('italic 11px Inter')]);
+  const cv = document.createElement('canvas'); cv.width = 825; cv.height = 1125;
+  const ctx = cv.getContext('2d'), k = 750 / 280;
+  ctx.fillStyle = c.memorial ? '#D9A93B' : '#FFFFFF'; ctx.fillRect(0, 0, 825, 1125);
+  ctx.translate(37.5, 37.5); ctx.scale(k, k);
+  const t = c.team, ink = '#1B2A41', A = "'Alfa Slab One', Georgia, serif";
+  if (side === 'front') {
+    rr(ctx, 9, 9, 262, 374, 9); ctx.fillStyle = t; ctx.fill();
+    ctx.fillStyle = '#FFFFFF'; ctx.font = '800 10px Inter, sans-serif'; ctx.textBaseline = 'alphabetic';
+    ctx.textAlign = 'left'; ctx.fillText('FOREVER ROSTER', 17, 27);
+    ctx.textAlign = 'right'; ctx.fillText(c.memorial ? 'PET HALL OF FAME' : 'ACTIVE ROSTER', 263, 27);
+    const img = await loadImg(c.photo1);
+    ctx.save(); rr(ctx, 17, 35, 246, 283, 6); ctx.clip(); ctx.fillStyle = c.artBg || '#E9E4D8'; ctx.fillRect(17, 35, 246, 283);
+    if (img) cover(ctx, img, 17, 35, 246, 283); ctx.restore();
+    rr(ctx, 17, 325, 246, 50, 6); ctx.fillStyle = '#FFFFFF'; ctx.fill();
+    ctx.textAlign = 'left'; ctx.fillStyle = ink; ctx.font = `21px ${A}`; ctx.fillText(c.name, 27, 349);
+    ctx.fillStyle = '#4A5568'; ctx.font = '600 11px Inter, sans-serif'; ctx.fillText(`${c.position} · ${c.breed}`, 27, 366);
+    ctx.textAlign = 'right'; ctx.fillStyle = t; ctx.font = `26px ${A}`; ctx.fillText('#' + c.number, 253, 361);
+  } else {
+    rr(ctx, 9, 9, 262, 374, 9); ctx.fillStyle = '#F7F2E6'; ctx.fill();
+    ctx.textAlign = 'left'; ctx.fillStyle = ink; ctx.font = `18px ${A}`; ctx.fillText(c.name, 20, 38);
+    const nw = ctx.measureText(c.name + ' ').width; ctx.fillStyle = t; ctx.fillText('#' + c.number, 20 + nw, 38);
+    ctx.fillStyle = '#4A5568'; ctx.font = 'italic 11px Inter, sans-serif'; ctx.fillText(`“${c.nickname}”`, 20, 54);
+    const img2 = await loadImg(c.photo2);
+    ctx.save(); ctx.beginPath(); ctx.arc(234, 40, 25, 0, Math.PI * 2); ctx.fillStyle = c.artBg2 || '#E4EEF6'; ctx.fill(); ctx.clip(); if (img2) cover(ctx, img2, 209, 15, 50, 50); ctx.restore();
+    ctx.beginPath(); ctx.arc(234, 40, 25, 0, Math.PI * 2); ctx.strokeStyle = t; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = '#6B6455'; ctx.font = '800 9px Inter, sans-serif'; ctx.fillText('BREED', 20, 82); ctx.fillText('SEASONS', 140, 82);
+    ctx.fillStyle = ink; ctx.font = '600 11px Inter, sans-serif'; ctx.fillText(c.breed, 20, 96); ctx.fillText(c.years, 140, 96);
+    ctx.font = '11.5px Inter, sans-serif'; const lines = wrap(ctx, c.superpower, 220), bh = 26 + lines.length * 15;
+    rr(ctx, 20, 106, 240, bh, 6); ctx.fillStyle = '#FFFFFF'; ctx.fill();
+    ctx.fillStyle = t; ctx.font = '800 9px Inter, sans-serif'; ctx.fillText('SUPERPOWER', 30, 120);
+    ctx.fillStyle = ink; ctx.font = '11.5px Inter, sans-serif'; lines.forEach((l, i) => ctx.fillText(l, 30, 136 + i * 15));
+    let y = 106 + bh + 8;
+    ctx.save(); rr(ctx, 20, y, 240, 44, 6); ctx.clip(); ctx.fillStyle = t; ctx.fillRect(20, y, 240, 18); ctx.fillStyle = '#FFFFFF'; ctx.fillRect(20, y + 18, 240, 26); ctx.restore();
+    ctx.textAlign = 'center'; [['NAPS', c.naps], ['ZOOMIES', c.zoomies], ['TREAT AVG', c.treats]].forEach(([h, v], i) => {
+      const x = 20 + 40 + i * 80; ctx.fillStyle = '#FFFFFF'; ctx.font = '800 9px Inter, sans-serif'; ctx.fillText(h, x, y + 12);
+      ctx.fillStyle = ink; ctx.font = '800 14px Inter, sans-serif'; ctx.fillText(v, x, y + 37); });
+    y += 62; ctx.textAlign = 'left';
+    ctx.font = '700 11px Inter, sans-serif'; ctx.fillStyle = ink; ctx.fillText('Favorite toy:', 20, y); ctx.font = '11px Inter, sans-serif'; ctx.fillText(c.toy, 20 + 74, y);
+    y += 16; ctx.font = '700 11px Inter, sans-serif'; ctx.fillText('Favorite snack:', 20, y); ctx.font = '11px Inter, sans-serif'; ctx.fillText(c.snack, 20 + 88, y);
+    y += 18; ctx.fillStyle = t; ctx.font = 'italic 700 11px Inter, sans-serif'; ctx.fillText(c.tagline, 20, y);
+    ctx.strokeStyle = '#DDD5C3'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(20, 356); ctx.lineTo(260, 356); ctx.stroke();
+    ctx.fillStyle = '#6B6455'; ctx.font = '800 9px Inter, sans-serif'; ctx.fillText(c.memorial ? 'IN LOVING MEMORY' : 'STILL GOING STRONG', 20, 370);
+    ctx.textAlign = 'right'; ctx.fillText('FOREVER ROSTER', 260, 370);
+  }
+  return cv;
+}
+$('dlFiles').addEventListener('click', async () => {
+  const note = $('dlNote'); note.textContent = 'Making print files…';
+  try {
+    for (const side of ['front', 'back']) {
+      const cv = await renderSide(S, side);
+      const blob = await new Promise((r) => cv.toBlob(r, 'image/png'));
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = `${(S.name || 'pet').replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-${side}.png`;
+      document.body.appendChild(a); a.click(); a.remove();
+    }
+    note.textContent = 'Downloaded front and back: 825 × 1125 px (2.5 × 3.5 in at 300 dpi, 1/8 in bleed).';
+  } catch (err) { note.textContent = 'Could not make the files in this browser. Try Chrome on a computer.'; }
 });
 show();
 }
