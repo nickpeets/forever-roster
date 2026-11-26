@@ -119,7 +119,7 @@ footer{background:var(--ink);color:#D3DAE5;font-size:14px;padding:28px 0;margin-
 </section>
 <section class="band wrap">
 <h2 class="center" style="font-size:38px">Meet the roster</h2>
-<p class="sub center">Sample cards. Yours uses your real photo.</p>
+<p class="sub center">Sample cards. Yours uses your own photo.</p>
 <div class="roster" id="roster"></div>
 </section>
 <div class="wrap duo">
@@ -180,7 +180,7 @@ footer{background:var(--ink);color:#D3DAE5;font-size:14px;padding:28px 0;margin-
 <button class="btn" type="button" data-go="3">Back to proof</button>
 </div>
 
-<footer><div class="wrap">Forever Roster · design concept for a custom pet card shop. Sample pets are illustrations.</div></footer>
+<footer><div class="wrap">Forever Roster · design concept for a custom pet card shop. Sample photos from Unsplash by JESHOOTS.COM, Jae Park, James Tiono and Raman.</div></footer>
 
 <script>
 {
@@ -190,7 +190,7 @@ const S = {
   name: 'Biscuit', nickname: 'The Biscuit', number: '07', breed: 'Beagle mix', years: '2009 – 2023', position: 'Couch Captain',
   toy: 'Squeaky hedgehog', snack: 'String cheese', tagline: 'Eat. Nap. Bark. Repeat.',
   superpower: 'Can hear a cheese wrapper from three rooms away', naps: '9,412', zoomies: '1,208', treats: '.998',
-  team: '#1F4E8C', memorial: true, photo1: '', photo2: '',
+  team: '#1F4E8C', memorial: true, photo1: 'https://images.unsplash.com/photo-1750692115876-828f4f1b69e4?w=640&h=720&fit=crop&q=70&auto=format', photo2: 'https://images.unsplash.com/photo-1750692115876-828f4f1b69e4?w=640&h=720&fit=crop&q=70&auto=format',
   art: 'dog', fur: '#C8873A', ear: '#7A4A22', artBg: '#CFE0EE', artBg2: '#E4EEF6'
 };
 const dogSVG = (c) => `<svg aria-hidden="true" viewBox="0 0 200 200" width="100%" height="100%" preserveAspectRatio="xMidYMid slice"><rect width="200" height="200" fill="${c.artBg}"/><circle cx="100" cy="100" r="78" fill="${c.artBg2}"/><path d="M30 210 Q100 140 170 210 Z" fill="${c.fur}"/><ellipse cx="58" cy="98" rx="20" ry="42" fill="${c.ear}" transform="rotate(18 58 98)"/><ellipse cx="142" cy="98" rx="20" ry="42" fill="${c.ear}" transform="rotate(-18 142 98)"/><ellipse cx="100" cy="106" rx="48" ry="54" fill="${c.fur}"/><ellipse cx="100" cy="134" rx="27" ry="21" fill="#F5EBDD"/><circle cx="82" cy="100" r="6" fill="#1B2A41"/><circle cx="118" cy="100" r="6" fill="#1B2A41"/><circle cx="84" cy="98" r="2" fill="#fff"/><circle cx="120" cy="98" r="2" fill="#fff"/><ellipse cx="100" cy="124" rx="10" ry="7" fill="#1B2A41"/><path d="M100 131 v7 M100 138 q-8 7 -14 0 M100 138 q8 7 14 0" stroke="#1B2A41" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M93 146 q7 12 14 0 z" fill="#E07A7A"/></svg>`;
@@ -223,9 +223,9 @@ function slab(c, side) {
 <div style="border-radius:10px;background:#F4F7FA;border:1px solid #D3DCE6;padding:8px;display:flex;justify-content:center">${card(c, side)}</div></div>`;
 }
 const samples = [
-  ['Memorial edition · gold border', { ...S }],
-  ['Active roster · still with us', { ...S, name: 'Mochi', number: '22', years: '2019 – present', position: 'Lap Warmer', breed: 'Ragdoll', team: '#5B3F8C', memorial: false, art: 'cat', fur: '#EDE3D4', ear: '#EDE3D4', artBg: '#E6DDF0', artBg2: '#F1ECF7' }],
-  ['Memorial edition · any team color', { ...S, name: 'Duke', number: '56', years: '2012 – 2025', position: 'Head of Security', breed: 'Golden retriever', team: '#B23A2E', art: 'dog', fur: '#E2B062', ear: '#C48A3A', artBg: '#F3DCD3', artBg2: '#F8EAE4' }]
+  ['Active roster · still with us', { ...S, name: 'Mochi', nickname: 'Little Laugh', number: '22', years: '2019 – present', position: 'Snack Inspector', breed: 'Tabby', team: '#5B3F8C', memorial: false, photo1: 'https://images.unsplash.com/photo-1543852786-1cf6624b9987?w=640&h=720&fit=crop&q=70&auto=format', photo2: '' }],
+  ['Active roster · any team color', { ...S, name: 'Frank', nickname: 'Upside Down Frank', number: '99', years: '2020 – present', position: 'Gravity Tester', breed: 'Pug', team: '#B5600F', memorial: false, photo1: 'https://images.unsplash.com/photo-1632669671776-cefd05baca87?w=640&h=720&fit=crop&q=70&auto=format', photo2: '' }],
+  ['Memorial edition · gold border', { ...S, name: 'Peanut', nickname: 'The Blep', number: '04', years: '2011 – 2024', position: 'Head of Security', breed: 'French bulldog', team: '#B23A2E', memorial: true, photo1: 'https://images.unsplash.com/photo-1670394133525-96fc5d1b1cb8?w=640&h=720&fit=crop&q=70&auto=format', photo2: '' }]
 ];
 const $ = (id) => document.getElementById(id);
 $('roster').innerHTML = samples.map(([cap, c]) => `<figure>${slab(c, 'front')}<figcaption>${cap}</figcaption></figure>`).join('');
